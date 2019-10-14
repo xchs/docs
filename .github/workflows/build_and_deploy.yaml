@@ -1,0 +1,34 @@
+name: Build and deploy to https://docs.contao.org
+
+on:
+    push:
+        branches:
+        - auto-deploy # TODO
+
+jobs:
+    build_and_deploy:
+        runs-on: ubuntu-18.04
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v1.0.0
+              with:
+                  submodules: true
+            - name: Setup Hugo
+              uses: peaceiris/actions-hugo@v2.2.2
+              with:
+                  hugo-version: '0.58.3'
+            - name: Build user manual
+              run: make build-manual
+            - name: Build developer manual
+              run: make build-dev
+            - name: Deploy
+              uses: appleboy/scp-action@master
+              env:
+                  HOST: ${{ secrets.DEPLOY_HOST }}
+                  USERNAME: ${{ secrets.DEPLOY_USERNAME }}
+                  PORT: ${{ secrets.DEPLOY_PORT }}
+                  KEY: ${{ secrets.DEPLOY_KEY }}
+              with:
+                  source: 'build'
+                  target: ${{ secrets.DEPLOY_TARGET_PATH }}
+                  rm: true
